@@ -19,12 +19,14 @@ class EmployeeController {
         $emp->email = $_POST['email'];
         $emp->salary = $_POST['salary'];
 
+        // Upload image
         $img = time() . $_FILES['image']['name'];
         move_uploaded_file($_FILES['image']['tmp_name'], "uploads/" . $img);
         $emp->image = $img;
 
         $emp->create();
         header("Location: index.php?module=employee");
+        exit;
     }
 
     public function edit() {
@@ -40,7 +42,8 @@ class EmployeeController {
         $emp->email = $_POST['email'];
         $emp->salary = $_POST['salary'];
 
-        if ($_FILES['image']['name']) {
+        // Check if new image uploaded
+        if (!empty($_FILES['image']['name'])) {
             $img = time() . $_FILES['image']['name'];
             move_uploaded_file($_FILES['image']['tmp_name'], "uploads/" . $img);
             $emp->image = $img;
@@ -50,8 +53,26 @@ class EmployeeController {
 
         $emp->update();
         header("Location: index.php?module=employee");
+        exit;
     }
 
     public function delete() {
+        if (!isset($_GET['id'])) {
+            die("ID not provided");
+        }
+
         $emp = new Employee();
-        $emp->
+
+        // Optional: get employee to delete image
+        $employee = $emp->find($_GET['id']);
+        if ($employee && file_exists("uploads/" . $employee['image'])) {
+            unlink("uploads/" . $employee['image']);
+        }
+
+        $emp->id = $_GET['id'];
+        $emp->delete();
+
+        header("Location: index.php?module=employee");
+        exit;
+    }
+}
